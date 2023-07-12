@@ -6,11 +6,12 @@ import com.example.example_trainningday4.modal.Department;
 import com.example.example_trainningday4.modal.Employee;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
 public interface IEmployeeService extends IGeneric<Employee,Long>{
-    Page<Employee> findAllEmployee(Pageable pageable);
+    Page<Employee> findAllEmployee(Pageable pageable, Sort sort);
 //    Iterable<Employee> findEmployeeByName(Pageable pageable, String name);
     EmployeeDto convertToDto(Employee employee);
     Employee convertToEtity(EmployeeDto employeeDto);

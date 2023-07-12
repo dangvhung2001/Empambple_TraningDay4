@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,12 +35,14 @@ public class EmployeeController {
     private IRoleService roleService;
 
     @GetMapping("/employee")
-    public ResponseEntity<?> findAll(Pageable pageable) {
-        Page<Employee> employee = employeeService.findAllEmployee(pageable);
-        if (employee.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return ResponseEntity.ok(employee.getContent());
+    public ResponseEntity<Page<EmployeeDto>> findAll(
+            @RequestParam(name = "name", required = false) String name,
+            @PageableDefault(sort = { "id" }, direction = Sort.Direction.ASC) Pageable pageable,
+            @SortDefault(sort = "id", direction = Sort.Direction.ASC) Sort sort) {
+        Page<Employee> employeePage;
+            employeePage = employeeService.findAllEmployee(pageable, sort);
+        Page<EmployeeDto> employeeDtoPage = employeePage.map(employeeService::convertToDto);
+        return ResponseEntity.ok(employeeDtoPage);
     }
 
     @PostMapping("/employee")
