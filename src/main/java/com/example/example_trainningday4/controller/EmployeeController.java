@@ -79,7 +79,6 @@ public class EmployeeController {
     @DeleteMapping("/employee/{id}")
     public ResponseEntity<String> deleteEmployee(@PathVariable Long id) {
         Optional<Employee> employee = Optional.ofNullable(employeeService.findById(id));
-
         if (employee.isPresent()) {
             employeeService.deleteById(id);
             return new ResponseEntity<>("deleteSuccess", HttpStatus.OK);
