@@ -2,6 +2,10 @@ package com.example.example_trainningday4.repository;
 
 import com.example.example_trainningday4.modal.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface RoleRepository extends JpaRepository<Role,Long> {
+@Repository
+@Transactional
+public interface RoleRepository extends JpaRepository<Role, Long> {
 }

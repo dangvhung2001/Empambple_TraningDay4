@@ -2,15 +2,10 @@ package com.example.example_trainningday4.controller;
 
 
 import com.example.example_trainningday4.dto.EmployeeDto;
+import com.example.example_trainningday4.mapper.EmployeeMapperImpl;
 import com.example.example_trainningday4.modal.Department;
 import com.example.example_trainningday4.modal.Employee;
-import com.example.example_trainningday4.modal.Role;
-import com.example.example_trainningday4.service.IDepartmanService;
-import com.example.example_trainningday4.service.IEmployeeService;
-import com.example.example_trainningday4.service.IRoleService;
-import com.example.example_trainningday4.service.serviceIMPL.EmployeeServiceIMPL;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.example_trainningday4.service.EmployeeService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,21 +22,23 @@ import java.util.*;
 @RequestMapping("/api")
 
 public class EmployeeController {
-    @Autowired
-    private IEmployeeService employeeService;
-    @Autowired
-    private IDepartmanService departmanService;
-    @Autowired
-    private IRoleService roleService;
+
+    private final EmployeeService employeeService;
+    private final EmployeeMapperImpl employeeMapper;
+
+    private EmployeeController(EmployeeService employeeService, EmployeeMapperImpl employeeMapper) {
+        this.employeeService = employeeService;
+        this.employeeMapper = employeeMapper;
+    }
 
     @GetMapping("/employee")
     public ResponseEntity<Page<EmployeeDto>> findAll(
             @RequestParam(name = "name", required = false) String name,
-            @PageableDefault(sort = { "id" }, direction = Sort.Direction.ASC) Pageable pageable,
+            @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable,
             @SortDefault(sort = "id", direction = Sort.Direction.ASC) Sort sort) {
         Page<Employee> employeePage;
-            employeePage = employeeService.findAllEmployee(pageable, sort);
-        Page<EmployeeDto> employeeDtoPage = employeePage.map(employeeService::convertToDto);
+        employeePage = (Page<Employee>) employeeService.findByNameIsContaining(name, pageable);
+        Page<EmployeeDto> employeeDtoPage = employeePage.map(employeeMapper::toDto);
         return ResponseEntity.ok(employeeDtoPage);
     }
 
@@ -51,8 +48,16 @@ public class EmployeeController {
         if (existingEmail) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Email already exists");
         }
-        employeeService.save(employee);
-        EmployeeDto employeeDto = employeeService.convertToDto(employee);
+        Employee newEmployee = new Employee(
+                employee.getId(),
+                employee.getEmail(),
+                employee.getName(),
+                employee.getDepartment(),
+                employee.getDepartmentId(),
+                employee.getRoles()
+        );
+        Employee savedDepartment = employeeService.save(newEmployee);
+        EmployeeDto employeeDto = employeeMapper.toDto(savedDepartment);
         if (employeeDto != null) {
             return new ResponseEntity<>("success", HttpStatus.OK);
         } else {
@@ -61,12 +66,14 @@ public class EmployeeController {
     }
 
     @PutMapping("/employee")
-    public ResponseEntity<?> update(@RequestBody EmployeeDto employeeDto) {
-        boolean existingEmail = employeeService.exitsByEmail(employeeDto.getEmail());
-        if (existingEmail) {
+    public ResponseEntity<?> update(@RequestBody Employee employee) {
+        Employee existingEmail = employeeService.findByEmail(employee.getEmail());
+        if (existingEmail.getId() != employee.getId()) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Email already exists");
         }
-            return new ResponseEntity<>("Update success!", HttpStatus.OK);
+        employeeService.save(employee);
+        EmployeeDto employeeDto = employeeMapper.toDto(employee);
+        return new ResponseEntity<>("Update success!" + employeeDto, HttpStatus.OK);
     }
 
     @DeleteMapping("/employee/{id}")

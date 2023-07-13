@@ -2,7 +2,7 @@ package com.example.example_trainningday4.mapper;
 
 import java.util.*;
 
-public interface EntityMapper<D,E> {
+public interface EntityMapper<D, E> {
     E toEntity(D dto);
 
     D toDto(E Entity);

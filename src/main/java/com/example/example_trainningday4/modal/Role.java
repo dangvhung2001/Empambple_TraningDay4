@@ -3,6 +3,7 @@ package com.example.example_trainningday4.modal;
 import javax.persistence.Entity;
 
 import javax.persistence.Id;
+
 @Entity
 
 public class Role {
